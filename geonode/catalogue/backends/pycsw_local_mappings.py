@@ -78,7 +78,6 @@ MD_CORE_MODEL = {
         'pycsw:Contributor': 'contributor',
         'pycsw:Relation': 'relation',
         'pycsw:Links': 'download_links',
-        #TODO Does this have side effects? what is the correct mapping? 
         'pycsw:Edition':'edition',
         'pycsw:Platform':'platform',
         'pycsw:Instrument':'instrument',
