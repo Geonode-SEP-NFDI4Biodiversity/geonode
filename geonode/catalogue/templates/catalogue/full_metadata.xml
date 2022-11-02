@@ -16,14 +16,38 @@
    {% with layer.poc as poc %}
    <gmd:contact>
      <gmd:CI_ResponsibleParty>
-       <gmd:individualName {% if not poc.name %}gco:nilReason="missing"{% endif %}>
-         {% if poc.name %} <gco:CharacterString>{{ poc.name }}</gco:CharacterString> {% endif %}
+       <gmd:individualName>
+         {% if poc.full_name_or_nick %}
+          <gco:CharacterString>
+            {{ poc.full_name_or_nick }}
+          </gco:CharacterString>
+         {% else %}
+          <gco:CharacterString>
+            GeoNode user
+          </gco:CharacterString>
+         {% endif %}
        </gmd:individualName>
-       <gmd:organisationName {% if not poc.organization %}gco:nilReason="missing"{% endif %}>
-         {% if poc.organization %} <gco:CharacterString>{{ poc.organization }}</gco:CharacterString> {% endif %}
+       <gmd:organisationName>
+         {% if poc.organization %}
+          <gco:CharacterString>
+            {{ poc.organization }}
+          </gco:CharacterString>
+         {% else %}
+          <gco:CharacterString>
+            GeoNode user
+          </gco:CharacterString>
+         {% endif %}
        </gmd:organisationName>
-       <gmd:positionName {% if not poc.position %}gco:nilReason="missing"{%endif%}>
-         {% if poc.position %}<gco:CharacterString>{{ poc.position }}</gco:CharacterString> {% endif %}
+       <gmd:positionName>
+         {% if poc.position %}
+          <gco:CharacterString>
+           {{ poc.position }}
+          </gco:CharacterString>
+         {% else %}
+          <gco:CharacterString>
+            GeoNode user
+          </gco:CharacterString>
+         {% endif %}
        </gmd:positionName>
        <gmd:contactInfo>
          <gmd:CI_Contact>
@@ -86,14 +110,38 @@
    {% with layer.metadata_author as metadata_author %}
    <gmd:contact>
      <gmd:CI_ResponsibleParty>
-       <gmd:individualName {% if not metadata_author.name %}gco:nilReason="missing"{% endif %}>
-         {% if metadata_author.name %} <gco:CharacterString>{{ metadata_author.name }}</gco:CharacterString> {% endif %}
+       <gmd:individualName>
+         {% if metadata_author.full_name_or_nick %}
+          <gco:CharacterString>
+            {{ metadata_author.full_name_or_nick }}
+          </gco:CharacterString>
+         {% else %}
+          <gco:CharacterString>
+            GeoNode user
+          </gco:CharacterString>
+         {% endif %}
        </gmd:individualName>
-       <gmd:organisationName {% if not metadata_author.organization %}gco:nilReason="missing"{% endif %}>
-         {% if metadata_author.organization %} <gco:CharacterString>{{ metadata_author.organization }}</gco:CharacterString> {% endif %}
+       <gmd:organisationName>
+         {% if metadata_author.organization %}
+          <gco:CharacterString>
+            {{ metadata_author.organization }}
+          </gco:CharacterString>
+         {% else %}
+          <gco:CharacterString>
+            GeoNode user
+          </gco:CharacterString>
+         {% endif %}
        </gmd:organisationName>
-       <gmd:positionName {% if not metadata_author.position %}gco:nilReason="missing"{%endif%}>
-         {% if metadata_author.position %}<gco:CharacterString>{{ metadata_author.position }}</gco:CharacterString> {% endif %}
+       <gmd:positionName>
+         {% if metadata_author.position %}
+          <gco:CharacterString>
+           {{ metadata_author.position }}
+          </gco:CharacterString>
+         {% else %}
+          <gco:CharacterString>
+            GeoNode user
+          </gco:CharacterString>
+         {% endif %}
        </gmd:positionName>
        <gmd:contactInfo>
          <gmd:CI_Contact>
