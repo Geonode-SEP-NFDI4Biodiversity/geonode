@@ -31,6 +31,10 @@ from geonode.catalogue.models import catalogue_post_save
 from geonode.catalogue.views import csw_global_dispatch
 from geonode.layers.populate_datasets_data import create_dataset_data
 
+import os
+from lxml import etree
+import pycsw
+
 from geonode.base.populate_test_data import (
     all_public,
     create_models,
@@ -55,6 +59,7 @@ class CatalogueTest(GeoNodeBaseTestSupport):
     def setUp(self):
         super().setUp()
         self.request = self.__request_factory_single(123)
+        self.dc_xml_schema = "geonode/base/fixtures/dc_schema.xsd"
         create_dataset_data()
         self.user = "admin"
         self.passwd = "admin"
@@ -82,6 +87,19 @@ class CatalogueTest(GeoNodeBaseTestSupport):
         if len(record.identification.otherconstraints) > 0:
             self.assertEqual(record.identification.otherconstraints[0], dataset.raw_constraints_other)
 
+    def test_metadata_dc_validation(self):
+        dataset = Dataset.objects.first()
+        request = self.__request_factory_single_dc(dataset.uuid)
+        response = csw_global_dispatch(request)
+        root_xml = etree.fromstring(response.content)
+        # stripping CSW root element with intact namespaces
+        metadata_dc = root_xml.xpath(
+            "./csw:Record", namespaces=root_xml.nsmap)[0]
+        self.assertIsNotNone(metadata_dc)
+        xmlschema = etree.XMLSchema(etree.parse(self.dc_xml_schema))
+        validates = xmlschema.validate(metadata_dc)
+        self.assertEqual(validates, True)
+        
     def test_given_a_simple_request_should_return_200(self):
         actual = csw_global_dispatch(self.request)
         self.assertEqual(200, actual.status_code)
@@ -143,4 +161,14 @@ class CatalogueTest(GeoNodeBaseTestSupport):
         url += "&typenames=gmd:MD_Metadata"
         request = factory.get(url)
         request.user = get_user_model().objects.first()
+        return request
+        
+    @staticmethod
+    def __request_factory_single_dc(uuid):
+        factory = RequestFactory()
+        url = "http://localhost:8000/catalogue/csw?request=GetRecordById"
+        url += f"&service=CSW&version=2.0.2&id={uuid}"
+        url += "&outputschema=http%3A%2F%2Fwww.opengis.net%2Fcat%2Fcsw%2F2.0.2&elementsetname=full"
+        request = factory.get(url)
+        request.user = AnonymousUser()
         return request

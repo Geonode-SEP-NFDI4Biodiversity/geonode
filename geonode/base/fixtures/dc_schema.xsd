@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+           xmlns="http://example.org/myapp/"
+           targetNamespace="http://example.org/myapp/"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified">
+
+  <xsd:annotation>
+    <xsd:documentation xml:lang="en">
+      DCMES 1.1 XML Schema
+      XML Schema for http://purl.org/dc/elements/1.1/ namespace
+
+      Created 2008-02-11
+
+      Created by 
+
+      Tim Cole (t-cole3@uiuc.edu)
+      Tom Habing (thabing@uiuc.edu)
+      Jane Hunter (jane@dstc.edu.au)
+      Pete Johnston (p.johnston@ukoln.ac.uk),
+      Carl Lagoze (lagoze@cs.cornell.edu)
+
+      This schema declares XML elements for the 15 DC elements from the
+      http://purl.org/dc/elements/1.1/ namespace.
+
+      It defines a complexType SimpleLiteral which permits mixed content 
+      and makes the xml:lang attribute available. It disallows child elements by
+      use of minOcccurs/maxOccurs.
+
+      However, this complexType does permit the derivation of other complexTypes
+      which would permit child elements.
+
+      All elements are declared as substitutable for the abstract element any, 
+      which means that the default type for all elements is dc:SimpleLiteral.
+
+    </xsd:documentation>
+
+  </xsd:annotation>
+
+
+  <xsd:import namespace="http://www.w3.org/XML/1998/namespace"
+             schemaLocation="http://www.w3.org/2001/03/xml.xsd">
+  </xsd:import>
+  <xsd:import namespace="http://www.opengis.net/cat/csw/2.0.2" schemaLocation="http://schemas.opengis.net/csw/2.0.2/csw.xsd"/>
+
+  <xsd:complexType name="SimpleLiteral">
+        <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+            This is the default type for all of the DC elements.
+            It permits text content only with optional
+            xml:lang attribute.
+            Text is allowed because mixed="true", but sub-elements
+            are disallowed because minOccurs="0" and maxOccurs="0" 
+            are on the xs:any tag.
+
+    	    This complexType allows for restriction or extension permitting
+            child elements.
+    	</xsd:documentation>
+  	</xsd:annotation>
+
+   <xsd:complexContent mixed="true">
+    <xsd:restriction base="xsd:anyType">
+     <xsd:sequence>
+      <xsd:any processContents="lax" minOccurs="0" maxOccurs="0"/>
+     </xsd:sequence>
+     <xsd:attribute ref="xml:lang" use="optional"/>
+    </xsd:restriction>
+   </xsd:complexContent>
+  </xsd:complexType>
+
+  <xsd:element name="any" type="SimpleLiteral" abstract="true"/>
+
+  <xsd:element name="title" substitutionGroup="any"/>
+  <xsd:element name="creator" substitutionGroup="any"/>
+  <xsd:element name="subject" substitutionGroup="any"/>
+  <xsd:element name="description" substitutionGroup="any"/>
+  <xsd:element name="publisher" substitutionGroup="any"/>
+  <xsd:element name="contributor" substitutionGroup="any"/>
+  <xsd:element name="date" substitutionGroup="any"/>
+  <xsd:element name="type" substitutionGroup="any"/>
+  <xsd:element name="format" substitutionGroup="any"/>
+  <xsd:element name="identifier" substitutionGroup="any"/>
+  <xsd:element name="source" substitutionGroup="any"/>
+  <xsd:element name="language" substitutionGroup="any"/>
+  <xsd:element name="relation" substitutionGroup="any"/>
+  <xsd:element name="coverage" substitutionGroup="any"/>
+  <xsd:element name="rights" substitutionGroup="any"/>
+
+  <xsd:group name="elementsGroup">
+  	<xsd:annotation>
+    	<xsd:documentation xml:lang="en">
+    	    This group is included as a convenience for schema authors
+            who need to refer to all the elements in the 
+            http://purl.org/dc/elements/1.1/ namespace.
+    	</xsd:documentation>
+  	</xsd:annotation>
+
+  <xsd:sequence>
+    <xsd:choice minOccurs="0" maxOccurs="unbounded">
+      <xsd:element ref="any"/>
+    </xsd:choice>
+    </xsd:sequence>
+  </xsd:group>
+
+  <xsd:complexType name="elementContainer">
+  	<xsd:annotation>
+    	<xsd:documentation xml:lang="en">
+    		This complexType is included as a convenience for schema authors who need to define a root
+    		or container element for all of the DC elements.
+    	</xsd:documentation>
+  	</xsd:annotation>
+
+    <xsd:choice>
+      <xsd:group ref="elementsGroup"/>
+    </xsd:choice>
+  </xsd:complexType>
+
+
+</xsd:schema>
