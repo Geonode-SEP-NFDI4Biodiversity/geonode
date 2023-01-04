@@ -16,9 +16,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 #########################################################################
-import os
 from urllib.request import Request
-from django.conf import settings
 from drf_spectacular.utils import extend_schema, OpenApiExample
 
 from dynamic_rest.viewsets import DynamicModelViewSet
@@ -40,17 +38,14 @@ from geonode.layers.metadata import parse_metadata
 from geonode.layers.models import Dataset
 from geonode.layers.utils import validate_input_source
 from geonode.maps.api.serializers import SimpleMapLayerSerializer, SimpleMapSerializer
-from geonode.utils import mkdtemp
-from geonode.geoserver.helpers import (
-    select_relevant_files,
-    write_uploaded_files_to_disk)
 from geonode.resource.utils import update_resource
 from rest_framework.exceptions import NotFound
 
 from geonode.storage.manager import StorageManager
 from geonode.resource.manager import resource_manager
 
-from .serializers import DatasetReplaceAppendSerializer, DatasetSerializer, DatasetListSerializer, DatasetMetadataSerializer
+from .serializers import DatasetReplaceAppendSerializer, DatasetSerializer, DatasetListSerializer \
+    , DatasetMetadataSerializer
 from .permissions import DatasetPermissionsFilter
 
 import logging
@@ -152,9 +147,6 @@ class DatasetViewSet(DynamicModelViewSet):
             if storage_manager:
                 storage_manager.delete_retrieved_paths()
         
-        
-        
-
     @extend_schema(
         methods=["get"],
         responses={200: SimpleMapLayerSerializer(many=True)},
