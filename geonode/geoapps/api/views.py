@@ -42,11 +42,11 @@ class GeoAppViewSet(DynamicModelViewSet):
     """
     http_method_names = ['get', 'patch', 'post', 'put']
     authentication_classes = [SessionAuthentication, BasicAuthentication, OAuth2Authentication]
-    permission_classes = [IsAuthenticatedOrReadOnly, UserHasPerms]
+    permission_classes = [IsAuthenticatedOrReadOnly, UserHasPerms(perms_dict={"default": {"POST": ["base.add_resourcebase"]}})]
     filter_backends = [
         DynamicFilterBackend, DynamicSortingFilter, DynamicSearchFilter,
         ExtentFilter, GeoAppPermissionsFilter
     ]
-    queryset = GeoApp.objects.all().order_by('-last_updated')
+    queryset = GeoApp.objects.all().order_by('-created')
     serializer_class = GeoAppSerializer
     pagination_class = GeoNodeApiPagination

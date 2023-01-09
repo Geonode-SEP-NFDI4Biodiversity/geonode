@@ -17,19 +17,60 @@
 #
 #########################################################################
 import os
+import io
+
+from PIL import Image
+import fitz
 
 from celery.utils.log import get_task_logger
 
 from geonode.celery_app import app
 from geonode.storage.manager import storage_manager
 
+from ..base.models import ResourceBase
 from .models import Document
-from .renderers import (
-    render_document,
-    generate_thumbnail_content,
-    ConversionError)
 
 logger = get_task_logger(__name__)
+
+
+class DocumentRenderer():
+    FILETYPES = ['pdf']
+    # See https://pillow.readthedocs.io/en/stable/reference/ImageOps.html#PIL.ImageOps.fit
+    CROP_CENTERING = {
+        'pdf': (0.0, 0.0)
+    }
+
+    def __init__(self) -> None:
+        pass
+
+    def supports(self, filename):
+        return self._get_filetype(filename) in self.FILETYPES
+
+    def render(self, filename):
+        content = None
+        if self.supports(filename):
+            filetype = self._get_filetype(filename)
+            render = getattr(self, f'render_{filetype}')
+            content = render(filename)
+        return content
+
+    def render_pdf(self, filename):
+        try:
+            doc = fitz.open(filename)
+            pix = doc[0].get_pixmap(matrix=fitz.Matrix(2.0, 2.0))
+            return pix.pil_tobytes(format="PNG")
+        except Exception as e:
+            logger.warning(f'Cound not generate thumbnail for {filename}: {e}')
+            return None
+
+    def preferred_crop_centering(self, filename):
+        return self.CROP_CENTERING.get(self._get_filetype(filename))
+
+    def _get_filetype(self, filname):
+        return os.path.splitext(filname)[1][1:]
+
+
+doc_renderer = DocumentRenderer()
 
 
 @app.task(
@@ -56,60 +97,42 @@ def create_document_thumbnail(self, object_id):
         logger.error(f"Document #{object_id} does not exist.")
         raise
 
-    image_path = None
     image_file = None
+    thumbnail_content = None
+    centering = (0.5, 0.5)
 
     if document.is_image:
         dname = storage_manager.path(document.files[0])
         if storage_manager.exists(dname):
             image_file = storage_manager.open(dname, 'rb')
-    elif document.is_video or document.is_audio:
-        image_file = open(document.find_placeholder(), 'rb')
-    elif document.is_file:
-        dname = storage_manager.path(document.files[0])
-        try:
-            document_location = storage_manager.path(dname)
-        except NotImplementedError as e:
-            logger.debug(e)
-
-            document_location = storage_manager.url(dname)
 
         try:
-            image_path = render_document(document_location)
-            if image_path is not None:
-                try:
-                    image_file = open(image_path, 'rb')
-                except Exception as e:
-                    logger.debug(f"Failed to render document #{object_id}: {e}")
-            else:
-                logger.debug(f"Failed to render document #{object_id}")
-        except ConversionError as e:
-            logger.debug(f"Could not convert document #{object_id}: {e}.")
-        except NotImplementedError as e:
-            logger.debug(f"Failed to render document #{object_id}: {e}")
-
-    thumbnail_content = None
-    try:
-        try:
-            thumbnail_content = generate_thumbnail_content(image_file)
+            image = Image.open(image_file)
+            with io.BytesIO() as output:
+                image.save(output, format='PNG')
+                thumbnail_content = output.getvalue()
+                output.close()
         except Exception as e:
-            logger.debug(f"Could not generate thumbnail, falling back to 'placeholder': {e}")
-            thumbnail_content = generate_thumbnail_content(document.find_placeholder())
-    except Exception as e:
-        logger.error(f"Could not generate thumbnail: {e}")
-        return
-    finally:
-        if image_file is not None:
-            image_file.close()
+            logger.debug(f"Could not generate thumbnail: {e}")
+        finally:
+            if image_file is not None:
+                image_file.close()
 
-        if image_path is not None:
-            os.remove(image_path)
-
+    elif doc_renderer.supports(document.files[0]):
+        try:
+            thumbnail_content = doc_renderer.render(document.files[0])
+            preferred_centering = doc_renderer.preferred_crop_centering(document.files[0])
+            if preferred_centering is not None:
+                centering = preferred_centering
+        except Exception as e:
+            print(e)
     if not thumbnail_content:
         logger.warning(f"Thumbnail for document #{object_id} empty.")
-    filename = f'document-{document.uuid}-thumb.png'
-    document.save_thumbnail(filename, thumbnail_content)
-    logger.debug(f"Thumbnail for document #{object_id} created.")
+        ResourceBase.objects.filter(id=document.id).update(thumbnail_url=None)
+    else:
+        filename = f'document-{document.uuid}-thumb.jpg'
+        document.save_thumbnail(filename, thumbnail_content, centering=centering)
+        logger.debug(f"Thumbnail for document #{object_id} created.")
 
 
 @app.task(

@@ -1493,7 +1493,7 @@ if GEONODE_CLIENT_LAYER_PREVIEW_LIBRARY == 'mapstore':
             "format": "image/jpeg",
             "id": "s2cloudless",
             "name": "s2cloudless:s2cloudless",
-            "url": "https://maps.geo-solutions.it/geoserver/wms",
+            "url": "https://maps.geosolutionsgroup.com/geoserver/wms",
             "group": "background",
             "thumbURL": f"{SITEURL}static/mapstorestyle/img/s2cloudless-s2cloudless.png",
             "visibility": False
@@ -1755,6 +1755,7 @@ CELERY_TASK_QUEUES = (
     Queue('email', GEONODE_EXCHANGE, routing_key='email', priority=0),
     Queue('security', GEONODE_EXCHANGE, routing_key='security', priority=0),
     Queue('management_commands_http', GEONODE_EXCHANGE, routing_key='management_commands_http', priority=0),
+    Queue('clery_cleanup', GEONODE_EXCHANGE, routing_key='clery_cleanup', priority=0)
 )
 
 if USE_GEOSERVER:
@@ -1990,14 +1991,14 @@ SOCIALACCOUNT_PROFILE_EXTRACTORS = {
 }
 
 INVITATIONS_ADAPTER = ACCOUNT_ADAPTER
-
+INVITATIONS_CONFIRMATION_URL_NAME = "geonode.invitations:accept-invite"
 
 # Choose thumbnail generator -- this is the default generator
 THUMBNAIL_GENERATOR = os.environ.get(
     'THUMBNAIL_GENERATOR', 'geonode.thumbs.thumbnails.create_gs_thumbnail_geonode')
 
 THUMBNAIL_SIZE = {
-    'width': int(os.environ.get('THUMBNAIL_GENERATOR_DEFAULT_SIZE_WIDTH', 240)),
+    'width': int(os.environ.get('THUMBNAIL_GENERATOR_DEFAULT_SIZE_WIDTH', 500)),
     'height': int(os.environ.get('THUMBNAIL_GENERATOR_DEFAULT_SIZE_HEIGHT', 200))
 }
 
@@ -2123,6 +2124,7 @@ MANAGEMENT_COMMANDS_EXPOSED_OVER_HTTP = set([
     "sync_geonode_maps",
     "importlayers",
     "set_all_datasets_metadata",
+    "set_layers_permissions",
 ] + ast.literal_eval(os.getenv('MANAGEMENT_COMMANDS_EXPOSED_OVER_HTTP ', '[]')))
 
 
