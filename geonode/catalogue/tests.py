@@ -31,9 +31,7 @@ from geonode.catalogue.models import catalogue_post_save
 from geonode.catalogue.views import csw_global_dispatch
 from geonode.layers.populate_datasets_data import create_dataset_data
 
-import os
 from lxml import etree
-import pycsw
 
 from geonode.base.populate_test_data import (
     all_public,
@@ -99,7 +97,7 @@ class CatalogueTest(GeoNodeBaseTestSupport):
         xmlschema = etree.XMLSchema(etree.parse(self.dc_xml_schema))
         validates = xmlschema.validate(metadata_dc)
         self.assertEqual(validates, True)
-        
+
     def test_given_a_simple_request_should_return_200(self):
         actual = csw_global_dispatch(self.request)
         self.assertEqual(200, actual.status_code)
@@ -162,7 +160,7 @@ class CatalogueTest(GeoNodeBaseTestSupport):
         request = factory.get(url)
         request.user = get_user_model().objects.first()
         return request
-        
+
     @staticmethod
     def __request_factory_single_dc(uuid):
         factory = RequestFactory()
