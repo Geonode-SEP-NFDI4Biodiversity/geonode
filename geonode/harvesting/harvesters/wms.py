@@ -472,10 +472,10 @@ class OgcWmsHarvester(base.BaseHarvesterWorker):
 
                     # Preventing if it returns comma as the decimal separator
                     spatial_extent = geos.Polygon.from_bbox((
-                        float(left_x.replace(",", ".")),
-                        float(lower_y.replace(",", ".")),
-                        float(right_x.replace(",", ".")),
-                        float(upper_y.replace(",", ".")),
+                        float(left_x),
+                        float(lower_y),
+                        float(right_x),
+                        float(upper_y),
                     ))
                     break
             if not spatial_extent:
@@ -496,12 +496,11 @@ class OgcWmsHarvester(base.BaseHarvesterWorker):
                         upper_y = get_xpath_value(
                             layer_element, "wms:EX_GeographicBoundingBox/wms:northBoundLatitude", nsmap)
 
-                        # Preventing if it returns comma as the decimal separator
                         spatial_extent = geos.Polygon.from_bbox((
-                            float(left_x.replace(",", ".")),
-                            float(lower_y.replace(",", ".")),
-                            float(right_x.replace(",", ".")),
-                            float(upper_y.replace(",", ".")),
+                            float(left_x),
+                            float(lower_y),
+                            float(right_x),
+                            float(upper_y),
                         ))
                         break
                 if not spatial_extent:

@@ -1261,13 +1261,11 @@ def get_spatial_extent_4326(
         right_x = get_xpath_value(extent_el, ".//gmd:eastBoundLongitude")
         lower_y = get_xpath_value(extent_el, ".//gmd:southBoundLatitude")
         upper_y = get_xpath_value(extent_el, ".//gmd:northBoundLatitude")
-        # GeoNode seems to have a bug whereby sometimes the reported extent uses a
-        # comma as the decimal separator, other times it uses a dot
         result = geos.Polygon.from_bbox((
-            float(left_x.replace(",", ".")),
-            float(lower_y.replace(",", ".")),
-            float(right_x.replace(",", ".")),
-            float(upper_y.replace(",", ".")),
+            float(left_x),
+            float(lower_y),
+            float(right_x),
+            float(upper_y),
         ))
     except IndexError:
         result = None
