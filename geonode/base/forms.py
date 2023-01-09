@@ -484,7 +484,9 @@ class ResourceBaseForm(TranslationModelForm):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         self.fields['regions'].choices = get_tree_data()
-
+        self.can_change_perms = self.user and self.user.has_perm(
+            'change_resourcebase_permissions', self.instance.get_self_resource()
+        )
         if self.instance and self.instance.id and self.instance.metadata.exists():
             self.fields['extra_metadata'].initial = [x.metadata for x in self.instance.metadata.all()]
 
@@ -500,6 +502,9 @@ class ResourceBaseForm(TranslationModelForm):
                         'data-placement': 'right',
                         'data-container': 'body',
                         'data-html': 'true'})
+
+            if field in ['poc', 'owner'] and not self.can_change_perms:
+                self.fields[field].disabled = True
 
     def disable_keywords_widget_for_non_superuser(self, user):
         if settings.FREETEXT_KEYWORDS_READONLY and not user.is_superuser:
@@ -625,21 +630,34 @@ class BatchEditForm(forms.Form):
     ids = forms.CharField(required=False, widget=forms.HiddenInput())
 
 
+def get_user_choices():
+    try:
+        return [(x.pk, x.title) for x in Dataset.objects.all().order_by('id')]
+    except Exception:
+        return []
+
+
 class UserAndGroupPermissionsForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['layers'].label_from_instance = self.label_from_instance
 
-    layers = forms.ModelMultipleChoiceField(
-        queryset=Dataset.objects.all(),
-        required=False)
-    permission_type = forms.MultipleChoiceField(
+    layers = MultipleChoiceField(
+        choices=get_user_choices(),
+        widget=autocomplete.Select2Multiple(
+            url='datasets_autocomplete'
+        ),
+        label="Datasets",
+        required=False,
+    )
+
+    permission_type = forms.ChoiceField(
         required=True,
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.RadioSelect,
         choices=(
-            ('r', 'Read'),
-            ('w', 'Write'),
-            ('d', 'Download'),
+            ('view', 'View'),
+            ('download', 'Download'),
+            ('edit', 'Edit'),
         ),
     )
     mode = forms.ChoiceField(

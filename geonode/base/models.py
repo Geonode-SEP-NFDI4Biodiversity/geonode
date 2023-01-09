@@ -777,7 +777,7 @@ class ResourceBase(PolymorphicModel, PermissionLevelMixin, ItemBase):
     extra_metadata_help_text = _(
         'Additional metadata, must be in format [ {"metadata_key": "metadata_value"}, {"metadata_key": "metadata_value"} ]')
     # internal fields
-    uuid = models.CharField(max_length=36, unique=True, default=str(uuid.uuid4))
+    uuid = models.CharField(max_length=36, unique=True, default=uuid.uuid4)
     title = models.CharField(_('title'), max_length=255, help_text=_(
         'name by which the cited resource is known'))
     abstract = models.TextField(
@@ -1233,7 +1233,9 @@ class ResourceBase(PolymorphicModel, PermissionLevelMixin, ItemBase):
 
             self.pk = self.id = _next_value
 
-        if not self.uuid or len(self.uuid) == 0 or callable(self.uuid):
+        if isinstance(self.uuid, uuid.UUID):
+            self.uuid = str(self.uuid)
+        elif not self.uuid or callable(self.uuid) or len(self.uuid) == 0:
             self.uuid = str(uuid.uuid4())
         super().save(*args, **kwargs)
 
@@ -1721,8 +1723,10 @@ class ResourceBase(PolymorphicModel, PermissionLevelMixin, ItemBase):
 
     # Note - you should probably broadcast layer#post_save() events to ensure
     # that indexing (or other listeners) are notified
-    def save_thumbnail(self, filename, image):
+    def save_thumbnail(self, filename, image, **kwargs):
         upload_path = get_unique_upload_path(filename)
+        # force convertion to JPEG output file
+        upload_path = f'{os.path.splitext(upload_path)[0]}.jpg'
         try:
             # Check that the image is valid
             if is_monochromatic_image(None, image):
@@ -1741,17 +1745,14 @@ class ResourceBase(PolymorphicModel, PermissionLevelMixin, ItemBase):
                 url = storage_manager.url(upload_path)
                 try:
                     # Optimize the Thumbnail size and resolution
-                    _default_thumb_size = getattr(
-                        settings, 'THUMBNAIL_GENERATOR_DEFAULT_SIZE', {'width': 240, 'height': 200})
+                    _default_thumb_size = settings.THUMBNAIL_SIZE
                     im = Image.open(storage_manager.open(actual_name))
-                    im.thumbnail(
-                        (_default_thumb_size['width'], _default_thumb_size['height']),
-                        resample=Image.ANTIALIAS)
-                    cover = ImageOps.fit(im, (_default_thumb_size['width'], _default_thumb_size['height']))
+                    centering = kwargs.get("centering", (0.5, 0.5))
+                    cover = ImageOps.fit(im, (_default_thumb_size['width'], _default_thumb_size['height']), centering=centering).convert("RGB")
 
                     # Saving the thumb into a temporary directory on file system
                     tmp_location = os.path.abspath(f"{settings.MEDIA_ROOT}/{upload_path}")
-                    cover.save(tmp_location, format='PNG')
+                    cover.save(tmp_location, quality="high")
 
                     with open(tmp_location, 'rb+') as img:
                         # Saving the img via storage manager
