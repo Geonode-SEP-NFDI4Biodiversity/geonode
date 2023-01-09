@@ -31,6 +31,10 @@ from geonode.catalogue.models import catalogue_post_save
 from geonode.catalogue.views import csw_global_dispatch
 from geonode.layers.populate_datasets_data import create_dataset_data
 
+import os
+from lxml import etree
+import pycsw
+
 from geonode.base.populate_test_data import (
     all_public,
     create_models,
@@ -81,6 +85,16 @@ class CatalogueTest(GeoNodeBaseTestSupport):
         self.assertEqual(record.identification.abstract, dataset.raw_abstract)
         if len(record.identification.otherconstraints) > 0:
             self.assertEqual(record.identification.otherconstraints[0], dataset.raw_constraints_other)
+
+    def test_metadata_iso_validation(self):
+        dataset = Dataset.objects.first()
+        schema_file = os.path.join(os.path.dirname(pycsw.__file__), 'plugins',
+                                   'profiles', 'apiso', 'schemas', 'ogc',
+                                   'iso', '19139', '20060504', 'gmd',
+                                   'gmd.xsd')
+        xmlschema = etree.XMLSchema(etree.parse(schema_file))
+        validates = xmlschema.validate(etree.fromstring(dataset.metadata_xml))
+        self.assertEqual(validates, True)
 
     def test_given_a_simple_request_should_return_200(self):
         actual = csw_global_dispatch(self.request)

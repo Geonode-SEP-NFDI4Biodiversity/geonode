@@ -1,4 +1,5 @@
 {% load thesaurus %}
+{% load l10n %}
 <gmd:MD_Metadata xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:gml="http://www.opengis.net/gml" xmlns:gmx="http://www.isotc211.org/2005/gmx" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gco="http://www.isotc211.org/2005/gco" xsi:schemaLocation="http://www.isotc211.org/2005/gmd http://www.isotc211.org/2005/gmd/gmd.xsd">
    <gmd:fileIdentifier>
      <gco:CharacterString>{{layer.uuid}}</gco:CharacterString>
@@ -16,14 +17,38 @@
    {% with layer.poc as poc %}
    <gmd:contact>
      <gmd:CI_ResponsibleParty>
-       <gmd:individualName {% if not poc.name %}gco:nilReason="missing"{% endif %}>
-         {% if poc.name %} <gco:CharacterString>{{ poc.name }}</gco:CharacterString> {% endif %}
+       <gmd:individualName>
+         {% if poc.full_name_or_nick %}
+          <gco:CharacterString>
+            {{ poc.full_name_or_nick }}
+          </gco:CharacterString>
+         {% else %}
+          <gco:CharacterString>
+            GeoNode user
+          </gco:CharacterString>
+         {% endif %}
        </gmd:individualName>
-       <gmd:organisationName {% if not poc.organization %}gco:nilReason="missing"{% endif %}>
-         {% if poc.organization %} <gco:CharacterString>{{ poc.organization }}</gco:CharacterString> {% endif %}
+       <gmd:organisationName>
+         {% if poc.organization %}
+          <gco:CharacterString>
+            {{ poc.organization }}
+          </gco:CharacterString>
+         {% else %}
+          <gco:CharacterString>
+            GeoNode user
+          </gco:CharacterString>
+         {% endif %}
        </gmd:organisationName>
-       <gmd:positionName {% if not poc.position %}gco:nilReason="missing"{%endif%}>
-         {% if poc.position %}<gco:CharacterString>{{ poc.position }}</gco:CharacterString> {% endif %}
+       <gmd:positionName>
+         {% if poc.position %}
+          <gco:CharacterString>
+           {{ poc.position }}
+          </gco:CharacterString>
+         {% else %}
+          <gco:CharacterString>
+            GeoNode user
+          </gco:CharacterString>
+         {% endif %}
        </gmd:positionName>
        <gmd:contactInfo>
          <gmd:CI_Contact>
@@ -86,14 +111,38 @@
    {% with layer.metadata_author as metadata_author %}
    <gmd:contact>
      <gmd:CI_ResponsibleParty>
-       <gmd:individualName {% if not metadata_author.name %}gco:nilReason="missing"{% endif %}>
-         {% if metadata_author.name %} <gco:CharacterString>{{ metadata_author.name }}</gco:CharacterString> {% endif %}
+       <gmd:individualName>
+         {% if metadata_author.full_name_or_nick %}
+          <gco:CharacterString>
+            {{ metadata_author.full_name_or_nick }}
+          </gco:CharacterString>
+         {% else %}
+          <gco:CharacterString>
+            GeoNode user
+          </gco:CharacterString>
+         {% endif %}
        </gmd:individualName>
-       <gmd:organisationName {% if not metadata_author.organization %}gco:nilReason="missing"{% endif %}>
-         {% if metadata_author.organization %} <gco:CharacterString>{{ metadata_author.organization }}</gco:CharacterString> {% endif %}
+       <gmd:organisationName>
+         {% if metadata_author.organization %}
+          <gco:CharacterString>
+            {{ metadata_author.organization }}
+          </gco:CharacterString>
+         {% else %}
+          <gco:CharacterString>
+            GeoNode user
+          </gco:CharacterString>
+         {% endif %}
        </gmd:organisationName>
-       <gmd:positionName {% if not metadata_author.position %}gco:nilReason="missing"{%endif%}>
-         {% if metadata_author.position %}<gco:CharacterString>{{ metadata_author.position }}</gco:CharacterString> {% endif %}
+       <gmd:positionName>
+         {% if metadata_author.position %}
+          <gco:CharacterString>
+           {{ metadata_author.position }}
+          </gco:CharacterString>
+         {% else %}
+          <gco:CharacterString>
+            GeoNode user
+          </gco:CharacterString>
+         {% endif %}
        </gmd:positionName>
        <gmd:contactInfo>
          <gmd:CI_Contact>
@@ -186,14 +235,14 @@
      <gmd:MD_DataIdentification>
        <gmd:citation>
          <gmd:CI_Citation>
-           {% if layer.alternate %}
-           <gmd:name>
-             <gco:CharacterString>{{layer.alternate}}</gco:CharacterString>
-           </gmd:name>
-           {% endif %}
            <gmd:title>
              <gco:CharacterString>{{layer.title}}</gco:CharacterString>
            </gmd:title>
+           {% if layer.alternate %}
+           <gmd:alternateTitle>
+             <gco:CharacterString>{{layer.alternate}}</gco:CharacterString>
+           </gmd:alternateTitle>
+           {% endif %}
            <gmd:date>
              <gmd:CI_Date>
                <gmd:date>
@@ -454,6 +503,7 @@
          <gmd:EX_Extent>
            <gmd:geographicElement>
              <gmd:EX_GeographicBoundingBox>
+               {% localize off %}
                <gmd:westBoundLongitude>
                  <gco:Decimal>{{layer.ll_bbox.0}}</gco:Decimal>
                </gmd:westBoundLongitude>
@@ -466,6 +516,7 @@
                <gmd:northBoundLatitude>
                  <gco:Decimal>{{layer.ll_bbox.3}}</gco:Decimal>
                </gmd:northBoundLatitude>
+               {% endlocalize %}
              </gmd:EX_GeographicBoundingBox>
            </gmd:geographicElement>
          </gmd:EX_Extent>
@@ -501,10 +552,10 @@
        </gmd:contentType>
      </gmd:MD_CoverageDescription>
      {% elif layer.subtype == 'vector' %}
-     <gmd:includedWithDataset>
-       <gco:Boolean>0</gco:Boolean>
-     </gmd:includedWithDataset>
      <gmd:MD_FeatureCatalogueDescription>
+       <gmd:includedWithDataset>
+         <gco:Boolean>0</gco:Boolean>
+       </gmd:includedWithDataset>
        <gmd:featureCatalogueCitation uuidref="{{layer.uuid}}" xlink:href="{{ SITEURL }}{{ layer.get_absolute_url }}/feature_catalogue"/>
      </gmd:MD_FeatureCatalogueDescription>
      {% endif %}

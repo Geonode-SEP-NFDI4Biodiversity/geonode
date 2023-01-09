@@ -8,7 +8,8 @@ x-common-django:
   env_file:
     - .env
   volumes:
-    # - '.:/usr/src/geonode'
+    # Mount/overlay geonode sources
+    - '.:/usr/src/geonode'
     - statics:/mnt/volumes/statics
     - geoserver-data-dir:/geoserver_data/data
     - backup-restore:/backup_restore
@@ -73,20 +74,6 @@ services:
       - statics:/mnt/volumes/statics
     restart: on-failure
 
-  # Gets and installs letsencrypt certificates
-  letsencrypt:
-    image: geonode/letsencrypt:4.0
-    build: ./scripts/docker/letsencrypt/
-    container_name: letsencrypt4${COMPOSE_PROJECT_NAME}
-    environment:
-      - HTTPS_HOST=${HTTPS_HOST}
-      - HTTP_HOST=${HTTP_HOST}
-      - ADMIN_EMAIL=${ADMIN_EMAIL}
-      - LETSENCRYPT_MODE=${LETSENCRYPT_MODE}
-    volumes:
-      - nginx-certificates:/geonode-certificates
-    restart: on-failure
-
   # Geoserver backend
   geoserver:
     image: geonode/geoserver:2.20.5
@@ -137,8 +124,8 @@ services:
     healthcheck:
       test: "pg_isready -d postgres -U postgres"
     # uncomment to enable remote connections to postgres
-    #ports:
-    #  - "5432:5432"
+    ports:
+      - "5432:5432"
 
   # Vanilla RabbitMQ service. This is needed by celery
   rabbitmq:
