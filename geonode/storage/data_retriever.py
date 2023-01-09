@@ -111,6 +111,7 @@ class DataItemRetriever(object):
                 with open(self.file_path, "wb") as tmp_file, smart_open.open(uri=self._original_file_uri, mode="rb") as original_file:
                     for chunk in file_chunks_iterable(original_file):
                         tmp_file.write(chunk)
+
         except Exception as e:
             logger.error(e)
             raise DataRetrieverExcepion(detail=e)
@@ -158,12 +159,18 @@ class DataRetriever(object):
         for name, data_item_retriever in self.data_items.items():
             file_path = data_item_retriever.transfer_remote_file(self.temporary_folder)
             self.file_paths[name] = Path(file_path)
+            os.chmod(file_path, settings.FILE_UPLOAD_PERMISSIONS)
         '''
         Is more usefull to have always unzipped file than the zip file
         So in case is a zip_file, we unzip it and than delete it
         '''
         if zipfile.is_zipfile(self.file_paths.get('base_file', 'not_zip')):
             self._unzip(zip_name=self.file_paths.get('base_file'))
+
+        if settings.FILE_UPLOAD_DIRECTORY_PERMISSIONS is not None:
+            # value is always set by default as None
+            # https://docs.djangoproject.com/en/3.2/ref/settings/#file-upload-directory-permissions
+            os.chmod(self.temporary_folder, settings.FILE_UPLOAD_DIRECTORY_PERMISSIONS)
         return self.file_paths
 
     def get_paths(self, allow_transfer=False):
@@ -202,7 +209,7 @@ class DataRetriever(object):
         the_zip = zipfile.ZipFile(zip_file, allowZip64=True)
         the_zip.extractall(self.temporary_folder)
         available_choices = get_allowed_extensions()
-        not_main_files = ['xml', 'sld', 'zip']
+        not_main_files = ['xml', 'sld', 'zip', 'kmz']
         base_file_choices = [x for x in available_choices if x not in not_main_files]
         for _file in Path(self.temporary_folder).iterdir():
             if any([_file.name.endswith(_ext) for _ext in base_file_choices]):
