@@ -724,7 +724,8 @@ def test(options):
        'geonode.monitoring' in INSTALLED_APPS and \
        'geonode.monitoring' not in _apps_to_test:
         _apps_to_test.append('geonode.monitoring')
-    sh(f"{options.get('prefix')} manage.py test geonode.tests.smoke \
+    prefix = options.get('prefix') if options.get('prefix') is not None else ""
+    sh(f"{prefix} manage.py test geonode.tests.smoke \
 {('.tests '.join(_apps_to_test))}.tests --noinput {_keepdb} {_parallel}")
 
 
