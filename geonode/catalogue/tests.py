@@ -62,7 +62,7 @@ class CatalogueTest(GeoNodeBaseTestSupport):
         create_dataset_data()
         self.user = "admin"
         self.passwd = "admin"
-    
+
     def test_get_catalog(self):
         """Tests the get_catalogue function works."""
         c = get_catalogue()
@@ -85,7 +85,7 @@ class CatalogueTest(GeoNodeBaseTestSupport):
         self.assertEqual(record.identification.abstract, dataset.raw_abstract)
         if len(record.identification.otherconstraints) > 0:
             self.assertEqual(record.identification.otherconstraints[0], dataset.raw_constraints_other)
-    
+
     def test_metadata_iso_validation(self):
         dataset = Dataset.objects.first()
         schema_file = os.path.join(os.path.dirname(pycsw.__file__), 'plugins',
@@ -95,7 +95,7 @@ class CatalogueTest(GeoNodeBaseTestSupport):
         xmlschema = etree.XMLSchema(etree.parse(schema_file))
         validates = xmlschema.validate(etree.fromstring(dataset.metadata_xml))
         self.assertEqual(validates, True)
-    
+
     def test_given_a_simple_request_should_return_200(self):
         actual = csw_global_dispatch(self.request)
         self.assertEqual(200, actual.status_code)
@@ -129,7 +129,7 @@ class CatalogueTest(GeoNodeBaseTestSupport):
         root = ET.fromstring(response.content)
         actual = root.find("{http://www.opengis.net/cat/csw/2.0.2}SearchResults").attrib["numberOfRecordsReturned"]
         self.assertEqual(2, int(actual))
-    
+
     @staticmethod
     def dataset_filter(dataset):
         return dataset.filter(uuid__startswith="foo_uuid")
